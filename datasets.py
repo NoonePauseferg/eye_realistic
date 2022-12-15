@@ -4,7 +4,6 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 class Eye_dataset(Dataset):
-    """zip save the world"""
     def __init__(self, X, y, transform):
         super().__init__()
         self.fake_imgs = X[:y.shape[0]]
