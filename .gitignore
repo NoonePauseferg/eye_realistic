@@ -3,3 +3,4 @@ lightning_logs
 collab
 __pycache__
 .DS_Store
+.gitignore
