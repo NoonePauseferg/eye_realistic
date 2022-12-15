@@ -34,16 +34,14 @@ class ResnetBlock_(nn.Module):
                                stride=stride,
                                dilation=2**ind)
 
-        self.l_relu = nn.LeakyReLU(inplace=False)
-        # self.norm1 = nn.BatchNorm2d(n_feature_maps)
-        # self.norm2 = nn.BatchNorm2d(n_feature_maps)
+        self.l_relu = nn.LeakyReLU(inplace=True)
+        self.norm1 = nn.BatchNorm2d(n_feature_maps)
+        self.norm2 = nn.BatchNorm2d(n_feature_maps)
 
     def forward(self, x):
         prev = x
-        # x = self.l_relu(self.norm1(self.conv1(x)))
-        x = self.l_relu(self.conv1(x))
-        # x = self.norm2(self.conv2(x))
-        x = self.conv2(x)
+        x = self.l_relu(self.norm1(self.conv1(x)))
+        x = self.norm2(self.conv2(x))
         x = self.l_relu(prev + x)
         return x
 
@@ -54,7 +52,7 @@ class Refiner_(nn.Module):
                  num_features=32):
         super().__init__()
         self.conv1 = nn.Conv2d(in_features, num_features, kernel_size=3, padding=1)
-        self.l_relu = nn.LeakyReLU(inplace=False)
+        self.l_relu = nn.LeakyReLU(inplace=True)
 
         blocks = [ResnetBlock_(input_features=num_features, 
                                n_feature_maps=num_features, 
@@ -63,7 +61,7 @@ class Refiner_(nn.Module):
                                ind=i) for i in range(num_blocks)]
         
         self.blocks = nn.Sequential(*blocks)
-        # self.norm = nn.BatchNorm2d(num_features)
+        self.norm = nn.BatchNorm2d(num_features)
         self.conv2 = nn.Conv2d(num_features, in_features, kernel_size=1)
 
     def forward(self, x):
@@ -75,17 +73,17 @@ class Refiner_(nn.Module):
 class Discriminator_(nn.Module):
     def __init__(self, in_features=1):
         super().__init__()
-        self.l_relu = nn.LeakyReLU(inplace=False)
+        self.l_relu = nn.LeakyReLU(inplace=True)
         self.conv0 = nn.Conv2d(3, 1, kernel_size=1)
         self.conv1 = nn.Conv2d(in_features, 96, kernel_size=3, stride=2)
-        # self.norm1 = nn.BatchNorm2d(96)
+        self.norm1 = nn.BatchNorm2d(96)
         self.conv2 = nn.Conv2d(96, 64, kernel_size=3, stride=2)
-        # self.norm2 = nn.BatchNorm2d(64)
+        self.norm2 = nn.BatchNorm2d(64)
         self.pool =  nn.MaxPool2d(3, stride=1)
         self.conv3 = nn.Conv2d(64, 32, kernel_size=3, stride=1)
-        # self.norm3 = nn.BatchNorm2d(32)
+        self.norm3 = nn.BatchNorm2d(32)
         self.conv4 = nn.Conv2d(32, 32, kernel_size=1, stride=1)
-        # self.norm4 = nn.BatchNorm2d(32)
+        self.norm4 = nn.BatchNorm2d(32)
         self.conv5 = nn.Conv2d(32, 2, kernel_size=1, stride=1)
         #receptive field same to refiner
 
@@ -94,19 +92,19 @@ class Discriminator_(nn.Module):
             x = self.conv0(x)
 
         x = self.conv1(x)
-        # x = self.norm1(x)
+        x = self.norm1(x)
         x = self.l_relu(x)
         x = self.conv2(x)
-        # x = self.norm2(x)
+        x = self.norm2(x)
         x = self.l_relu(x)
 
         x = self.pool(x)
         
         x = self.conv3(x)
-        # x = self.norm3(x)
+        x = self.norm3(x)
         x = self.l_relu(x)
         x = self.conv4(x)
-        # x = self.norm4(x)
+        x = self.norm4(x)
         x = self.l_relu(x)
         x = self.conv5(x)
         x = self.l_relu(x)
